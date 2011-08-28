@@ -36,7 +36,8 @@
     // Script Start
     //
 
-    var autoSort = "reviews";
+    var sortType = "reviews";
+    var descendingType = false;
 
     var myform = document.getElementById( "myform" );
     if (!myform) {
@@ -53,13 +54,13 @@
     var formParent = table.childNodes[0].childNodes[0].childNodes[1];
 
     var sortFilter = document.createElement( "select" );
-    var sortTypes = ["reviews", "words", "chapters"];
-    html(sortFilter, '<option value="reviews">Reviews</option><option value="words">Words</option><option value="chapters">Chapters</option>');
+    var sortTypes = ["reviews", "words", "chapters", "none"];
+    html(sortFilter, '<option value="reviews">Reviews</option><option value="words">Words</option><option value="chapters">Chapters</option><option value="none">None</option>');
     sortFilter.id = "sortFilter";
     formParent.appendChild( sortFilter );
 
     // Change the sort selection to match auto sort (if enabled).
-    var autoSortIndex = sortTypes.indexOf(autoSort);
+    var autoSortIndex = sortTypes.indexOf(sortType);
     if (autoSortIndex != -1) {
         sortFilter.selectedIndex = autoSortIndex;
     }
@@ -73,8 +74,8 @@
     };
     formParent.appendChild( sortButton );
 
-    // TODO: Don't re-parse the data unless it's changed
-    function sortBy(sortType) {
+    var sort_data = [];
+    function parseStories() {
         var stories = myform.getElementsByClassName( "z-list" );
         var stories_data = myform.getElementsByClassName( "z-padtop2" );
         if (stories.length !== stories_data.length) {
@@ -82,7 +83,6 @@
             return;
         }
 
-        var sort_data = [];
         for (var i = 0, length = stories.length; i < length; ++i) {
             function parseMetadata( raw ) {
                 var metadata = null;
@@ -127,7 +127,8 @@
                 "rating" : "K",
                 "chapters" : 0,
                 "words" : 0,
-                "reviews" : 0
+                "reviews" : 0,
+                "none" : i
             };
             var metadata_raw = html( stories_data[i] ).split( " - " );
             for (var j = 0, jlength = metadata_raw.length; j < jlength; ++j) {
@@ -139,7 +140,10 @@
             story_data.html = stories[i];
             sort_data.push(story_data);
         }
+    }
+    parseStories();
 
+    function sortBy(selectedSortType) {
         function sortByKey(list, key, descending) {
             function sortFunc(a, b) {
                 if (key in a && key in b) {
@@ -157,14 +161,20 @@
             list.sort(sortFunc);
         }
 
-        sortByKey(sort_data, sortType, true);
+        // Toggle ascending/descending if same type is selected.
+        if (selectedSortType === sortType) {
+            descendingType = !descendingType;
+        }
+        sortType = selectedSortType;
+
+        sortByKey(sort_data, selectedSortType, descendingType);
 
         for (i = 0, ilength = sort_data.length; i < ilength; ++i) {
             myform.appendChild(sort_data[i].html);
         }
     }
 
-    if (autoSort) {
-        sortBy(autoSort);
+    if (sortType) {
+        sortBy(sortType);
     }
 })();
