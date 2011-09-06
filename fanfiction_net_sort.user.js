@@ -44,6 +44,9 @@
         return;
     }
 
+    var separators = myform.getElementsByClassName( "sep" );
+    var insertionPoint = separators[2];
+
     // Add sort selection and button.
     var table = myform.getElementsByTagName( "table" );
     if (!table) {
@@ -170,7 +173,12 @@
         sortByKey(sort_data, selectedSortType, descendingType);
 
         for (i = 0, ilength = sort_data.length; i < ilength; ++i) {
-            myform.appendChild(sort_data[i].html);
+            if (insertionPoint) {
+                myform.insertBefore(sort_data[i].html, insertionPoint);
+            }
+            else {
+                myform.appendChild(sort_data[i].html);
+            }
         }
     }
 
